@@ -255,9 +255,6 @@ def generar_resumen_ejecutivo_local(resumen_datos):
         return "Sin observaciones relevantes."
 
 
-# --- 1. ENCABEZADO CON LOGO ---
-st.image("logo_ATP.png", width=200)
-
 header_col1, header_col2 = st.columns([1, 4])
 
 with header_col1:
