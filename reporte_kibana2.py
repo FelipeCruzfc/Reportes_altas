@@ -256,13 +256,14 @@ def generar_resumen_ejecutivo_local(resumen_datos):
 
 
 # --- 1. ENCABEZADO CON LOGO ---
-ruta_logo = r"C:\Users\FelipeCruz\OneDrive - Andean Telecom Partners\Escritorio\Reportes_ATP\logo_ATP.png"
+st.image("logo_ATP.png", width=200)
 
 header_col1, header_col2 = st.columns([1, 4])
+
 with header_col1:
     try:
-        img = Image.open(ruta_logo)
-        st.image(img, width=180) 
+        img = Image.open("logo_ATP.png")
+        st.image(img, width=180)
     except:
         st.write("⚠️ Logo ATP")
 
