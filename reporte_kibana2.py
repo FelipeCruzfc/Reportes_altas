@@ -1221,7 +1221,7 @@ if uploaded_file:
 
             # --- BOTÓN DE DESCARGA ---
             st.download_button(
-                label="📥 Descargar Reporte Completo Corregido",
+                label="📥 Descargar Reporte Completo",
                 data=html_content,
                 file_name=f"Reporte_Final_{operador_filtro}_{rango_texto}.html",
                 mime="text/html",
@@ -1243,7 +1243,7 @@ if uploaded_file:
                 </head>
                 <body>
                     <div class="container">
-                        <h1> Evolución Temporal - Procesos Críticos</h1>
+                        <h1> Evolución Temporal - Procesos</h1>
                         <p><b>Período:</b> {rango_texto} | <b>Operador:</b> {OPERADOR_LABEL[operador_filtro]}</p>
                         <img src="data:image/png;base64,{img_tiempo_64}" style="width: 100%; margin-top: 20px;">
                     </div>
