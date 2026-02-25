@@ -91,6 +91,8 @@ def clasificar_sla(codigo_traducido):
         "100-4: Sin respuesta del servicio externo",
         "200-88: No se encontro CVLAN relacionada para la OLT",
         "200-2: Error inesperado",
+        "200-46: Error ejecutando el comando DEL-LANIPTVPORT",
+        "200-46: Error ejecutando el comando DEL-PONVLAN"
     ]
 
     if codigo_traducido in FALLAS_TECNICAS:
@@ -142,20 +144,32 @@ def generar_comentario(api_key, errores, total_tx=None):
         # Mapeo de abreviaciones y responsables
         def abreviar(codigo):
             cod = str(codigo).lower()
+
             if 'timeout' in cod or 'request_time_out' in cod or '100-5' in cod:
                 return 'Timeout', 'Proveedor/Servicio externo'
+
             if 'ont' in cod or '200-68' in cod or '200-39' in cod:
                 return 'ONT en inv.', 'Inventario/Operaciones'
+
             if 'vno' in cod or '200-15' in cod or '200-38' in cod:
                 return 'No asoc. a VNO', 'Integración/Cliente'
+
             if 'error inesperado' in cod or '200-2' in cod:
                 return 'Error inesper.', 'Sistema interno'
+
             if 'no se encontro cvlan' in cod or '200-88' in cod:
                 return 'CVLAN falt.', 'Integración OLT'
-            if 'cfg-onubw' in cod or 'add-onu' in cod or 'del-onu' in cod or '200-46' in cod:
+
+            # 👇 Mejor manejo de 200-46
+            if '200-46' in cod:
+                return 'Error cmd red', 'Sistema/Equipos'
+
+            if 'cfg-onubw' in cod or 'add-onu' in cod or 'del-onu' in cod:
                 return 'Error cmd ONU', 'Sistema/Equipos'
+
             if '100-4' in cod:
                 return 'Sin resp. svc ext.', 'Proveedor/Servicio externo'
+
             return codigo, 'Indeterminado'
 
         # Agregar columna con abreviacion y responsable
@@ -346,6 +360,8 @@ if uploaded_file:
         "100-4: Sin respuesta del servicio externo",
         "200-88: No se encontro CVLAN relacionada para la OLT",
         "200-2: Error inesperado",
+        "200-46: Error ejecutando el comando DEL-LANIPTVPORT",
+        "200-46: Error ejecutando el comando DEL-PONVLAN"
     ]
 
     df_clean["Es_Exito_Tecnico"] = ~df_clean[COL_CODE].isin(FALLAS_TECNICAS)
@@ -421,60 +437,68 @@ if uploaded_file:
     # DICCIONARIO DE COLORES PARA CÓDIGOS (organizado por categorías)
     def obtener_color_codigo(codigo):
         """Asigna colores según el tipo de código"""
-        
-        # Verde para éxitos
-        if '200 TODO OK' in codigo:
-            return '#2ECC71'  # Verde éxito
-        
-        # Rojos/Naranjas para errores técnicos del sistema
-        elif '100-5: REQUEST_TIME_OUT' in codigo:
-            return '#E74C3C'  # Rojo timeout
-        elif '100-4:' in codigo:
-            return '#C0392B'  # Rojo oscuro
-        elif '100-2: Falta parámetro' in codigo:
-            return '#E67E22'  # Naranja
-        elif '100-190:' in codigo or '100-191:' in codigo:
-            return '#D35400'  # Naranja oscuro
-        
-        # Morados para errores de negocio/estado
-        elif '200-40:' in codigo:  # Estados INACTIVO/CANCELADO/ACTIVO
-            return '#9B59B6'  # Morado
-        elif '200-42:' in codigo:  # Componentes CANCELADO
-            return '#8E44AD'  # Morado oscuro
-        elif '200-38:' in codigo:  # No asociado a VNO
-            return '#6C3483'  # Morado muy oscuro
-        
-        # Azules para errores de inventario/ONT
-        elif '200-68:' in codigo:  # ONT ya existe
-            return '#3498DB'  # Azul
-        elif '200-63:' in codigo:  # Reserva no activa
-            return '#2980B9'  # Azul oscuro
-        elif '200-39:' in codigo:  # Reserva ya tiene ONT
-            return '#1F618D'  # Azul muy oscuro
-        
-        # Amarillos para errores de comandos
-        elif '200-46:' in codigo:  # Error ejecutando comando
-            return '#F39C12'  # Amarillo/Dorado
-        elif '200-41:' in codigo:
-            return '#D68910'  # Amarillo oscuro
-        
-        # Rosas para errores de reserva/servicio
-        elif '200-15:' in codigo:  # No existe reserva
-            return '#EC7063'  # Rosa
-        elif '200-30:' in codigo:  # Reserva COMPLETADA
-            return '#E74C3C'  # Rosa oscuro
-        
-        # Gris para "Otros"
-        elif codigo == 'Otros':
-            return '#BDC3C7'  # Gris claro
-        
-        elif '200-2:' in codigo:
-            return '#E74C3C'  # Rojo error inesperado
-        
-        # Gris para otros códigos no categorizados
-        else:
-            return '#95A5A6'  # Gris
 
+        cod = str(codigo).lower()
+
+        # Verde para éxitos
+        if '200 todo ok' in cod:
+            return '#2ECC71'
+
+        # Rojos/Naranjas para errores técnicos del sistema
+        elif '100-5' in cod:
+            return '#E74C3C'
+
+        elif '100-4' in cod:
+            return '#C0392B'
+
+        elif '100-2' in cod:
+            return '#E67E22'
+
+        elif '100-190' in cod or '100-191' in cod:
+            return '#D35400'
+
+        # Morados para errores de negocio/estado
+        elif '200-40' in cod:
+            return '#9B59B6'
+
+        elif '200-42' in cod:
+            return '#8E44AD'
+
+        elif '200-38' in cod:
+            return '#6C3483'
+
+        # Azules para errores de inventario/ONT
+        elif '200-68' in cod:
+            return '#3498DB'
+
+        elif '200-63' in cod:
+            return '#2980B9'
+
+        elif '200-39' in cod:
+            return '#1F618D'
+
+        # Amarillos para errores de comandos (200-46 incluido)
+        elif '200-46' in cod:
+            return '#F39C12'
+
+        elif '200-41' in cod:
+            return '#D68910'
+
+        # Rosas para errores de reserva/servicio
+        elif '200-15' in cod:
+            return '#EC7063'
+
+        elif '200-30' in cod:
+            return '#E74C3C'
+
+        elif '200-2' in cod:
+            return '#E74C3C'
+
+        elif cod == 'otros':
+            return '#BDC3C7'
+
+        else:
+            return '#95A5A6'
     # Preparar datos para barras apiladas
     pivot_data = df_filtrado.groupby([COL_TRANS, COL_CODE]).size().unstack(fill_value=0)
 
